@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estúdio de Edição IA Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #111827; /* Azul Noturno Muito Escuro */
+            --bg-secondary: #1F2937; /* Azul Noturno Escuro */
+            --surface-card: #374151; /* Cinza Ardósia */
+            --border-color: #4B5563; /* Cinza Médio */
+            --primary-accent: #38BDF8; /* Azul Céu Vibrante */
+            --text-primary: #F9FAFB; /* Quase Branco */
+            --text-secondary: #D1D5DB; /* Cinza Claro */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: var(--bg-primary);
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.3), 0 4px 6px -4px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background-color: #4B5563;
+            cursor: not-allowed;
+            color: #9CA3AF;
+        }
+
+        .btn-secondary {
+            background-color: var(--surface-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-tertiary {
+            background-color: transparent;
+            color: var(--primary-accent);
+            border: 1px solid var(--primary-accent);
+            transition: all 0.2s ease;
+        }
+        .btn-tertiary:hover {
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+
+        .input-base, textarea {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .input-base:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+        }
+
+        .loader {
+            border: 4px solid #f3f3f330;
+            border-top: 4px solid var(--primary-accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        .small-loader {
+             border-width: 2px;
+             width: 16px;
+             height: 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #drop-zone {
+            border: 2px dashed var(--border-color);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        #drop-zone.drag-over {
+            border-color: var(--primary-accent);
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+        
+        .quick-style-btn {
+            background-color: var(--surface-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .quick-style-btn:hover {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .history-thumbnail {
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">
+                Estúdio de Edição <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">IA Pro</span>
+            </h1>
+            <p class="mt-2 text-lg text-gray-400">Transforme suas imagens com o poder da inteligência artificial generativa.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 flex flex-col gap-6">
+                <div class="card p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-sky-300">1. Carregar Imagem</h2>
+                    <div id="drop-zone" class="p-6 text-center rounded-lg cursor-pointer">
+                        <input type="file" id="image-upload" class="hidden" accept="image/png, image/jpeg, image/webp">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        <p class="mt-2 text-sm text-gray-400"><span class="font-semibold text-sky-400">Clique para carregar</span> ou arraste e solte</p>
+                        <p class="text-xs text-gray-500">PNG, JPG, WEBP até 50MB</p>
+                        <p class="text-xs text-gray-500 mt-1">(Imagens grandes serão otimizadas para edição)</p>
+                    </div>
+                    <p id="file-name" class="text-sm text-center mt-3 text-gray-400 truncate"></p>
+                    <button id="reset-btn" class="w-full btn-secondary text-sm py-2 mt-4 rounded-lg hidden">Começar de Novo</button>
+                </div>
+
+                <div id="edit-controls" class="card p-6 opacity-50 pointer-events-none">
+                    <h2 class="text-xl font-semibold mb-4 text-sky-300">2. Descreva sua Edição</h2>
+                    
+                    <div id="ai-suggestion-box" class="mb-4 p-3 border border-dashed border-sky-500/50 rounded-lg bg-sky-500/10 hidden">
+                         <div id="ai-suggestion-loader" class="flex items-center text-sky-300">
+                             <div class="loader small-loader mr-2"></div>
+                             <span class="text-sm">Analisando sua imagem...</span>
+                         </div>
+                         <div id="ai-suggestion-content" class="hidden">
+                             <p class="text-sm text-sky-200 mb-2"><strong>Sugestão da IA:</strong></p>
+                             <p id="ai-suggestion-text" class="text-sm text-gray-300 italic mb-3"></p>
+                             <div class="flex items-center gap-2">
+                                <button id="use-suggestion-btn" class="flex-1 btn-tertiary text-xs py-1.5 rounded-md">Usar esta sugestão</button>
+                                <button id="copy-suggestion-btn" title="Copiar sugestão" class="btn-secondary p-1.5 rounded-md">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                </button>
+                            </div>
+                         </div>
+                         <p id="ai-suggestion-error" class="text-sm text-red-400 text-center hidden"></p>
+                    </div>
+                    
+                    <textarea id="prompt" rows="4" class="w-full p-3 rounded-lg resize-none" placeholder="Descreva a edição ou use a sugestão da IA..."></textarea>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-sm font-medium text-gray-400 mb-2">Estilos Rápidos</h3>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <button class="quick-style-btn">Cinemático</button>
+                            <button class="quick-style-btn">Fantasia</button>
+                            <button class="quick-style-btn">Neon</button>
+                            <button class="quick-style-btn">Vintage</button>
+                            <button class="quick-style-btn">Aquarela</button>
+                            <button class="quick-style-btn">Pixel Art</button>
+                        </div>
+                    </div>
+
+                    <button id="apply-edit-btn" class="w-full btn-primary py-3 mt-4 rounded-lg flex items-center justify-center">
+                        <svg id="apply-icon" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                        <span id="apply-btn-text">Aplicar Edição</span>
+                    </button>
+                    <p id="error-message" class="text-red-400 text-sm mt-3 text-center"></p>
+                </div>
+
+                <div id="history-panel" class="card p-6 opacity-50 pointer-events-none">
+                    <h2 class="text-xl font-semibold mb-4 text-sky-300">3. Histórico de Versões</h2>
+                    <ul id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                        <!-- O histórico será preenchido via JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-center mb-3 text-gray-300">Original</h3>
+                        <div id="original-image-container" class="aspect-square bg-gray-800 rounded-lg flex items-center justify-center">
+                            <p class="text-gray-500">Aguardando imagem...</p>
+                        </div>
+                    </div>
+
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-center mb-3 text-gray-300">Editado</h3>
+                        <div id="edited-image-container" class="aspect-square bg-gray-800 rounded-lg flex items-center justify-center relative">
+                             <p id="edited-placeholder" class="text-gray-500">Aguardando edição...</p>
+                             <div id="loader" class="absolute hidden">
+                                <div class="loader"></div>
+                                <p class="text-sm text-gray-300 mt-3 text-center">Processando IA...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="final-actions" class="card p-6 mt-auto opacity-50 pointer-events-none">
+                     <h2 class="text-xl font-semibold mb-4 text-sky-300">4. Finalizar</h2>
+                     <button id="download-btn" class="w-full btn-secondary py-3 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Baixar Resultado
+                     </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Referências do DOM ---
+        const dropZone = document.getElementById('drop-zone');
+        const imageUploadInput = document.getElementById('image-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const originalImageContainer = document.getElementById('original-image-container');
+        const editedImageContainer = document.getElementById('edited-image-container');
+        const promptInput = document.getElementById('prompt');
+        const applyEditBtn = document.getElementById('apply-edit-btn');
+        const applyBtnText = document.getElementById('apply-btn-text');
+        const loader = document.getElementById('loader');
+        const historyList = document.getElementById('history-list');
+        const downloadBtn = document.getElementById('download-btn');
+        const errorMessage = document.getElementById('error-message');
+        const editControls = document.getElementById('edit-controls');
+        const historyPanel = document.getElementById('history-panel');
+        const finalActions = document.getElementById('final-actions');
+        const applyIcon = document.getElementById('apply-icon');
+        const aiSuggestionBox = document.getElementById('ai-suggestion-box');
+        const aiSuggestionLoader = document.getElementById('ai-suggestion-loader');
+        const aiSuggestionContent = document.getElementById('ai-suggestion-content');
+        const aiSuggestionText = document.getElementById('ai-suggestion-text');
+        const useSuggestionBtn = document.getElementById('use-suggestion-btn');
+        const aiSuggestionError = document.getElementById('ai-suggestion-error');
+        const resetBtn = document.getElementById('reset-btn');
+        const copySuggestionBtn = document.getElementById('copy-suggestion-btn');
+
+        // --- Estado da Aplicação ---
+        let originalImage = { dataUrl: null, mimeType: null };
+        let currentImage = { base64: null, mimeType: null, dataUrl: null };
+        let historyStack = [];
+        let isLoading = false;
+
+        // --- Constantes da API e de Configuração ---
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=";
+        const ANALYSIS_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+        const API_KEY = ""; 
+        const MAX_UPLOAD_SIZE_MB = 50;
+        const MAX_API_SIZE_BYTES = 4 * 1024 * 1024; // 4MB
+
+        // --- Funções de Manipulação da UI ---
+        function activateControls() {
+            [editControls, historyPanel, finalActions].forEach(el => {
+                el.classList.remove('opacity-50', 'pointer-events-none');
+            });
+            resetBtn.classList.remove('hidden');
+        }
+        
+        function resetApp() {
+            originalImage = { dataUrl: null, mimeType: null };
+            currentImage = { base64: null, mimeType: null, dataUrl: null };
+            historyStack = [];
+            
+            originalImageContainer.innerHTML = '<p class="text-gray-500">Aguardando imagem...</p>';
+            editedImageContainer.innerHTML = '<p id="edited-placeholder" class="text-gray-500">Aguardando edição...</p>';
+            fileNameDisplay.textContent = '';
+            promptInput.value = '';
+            showError('');
+            updateHistoryUI();
+
+            [editControls, historyPanel, finalActions].forEach(el => {
+                el.classList.add('opacity-50', 'pointer-events-none');
+            });
+            resetBtn.classList.add('hidden');
+            aiSuggestionBox.classList.add('hidden');
+            imageUploadInput.value = '';
+        }
+
+        function setLoading(state) {
+            isLoading = state;
+            applyEditBtn.disabled = state;
+            loader.classList.toggle('hidden', !state);
+            applyIcon.classList.toggle('hidden', state);
+            
+            const editedImg = editedImageContainer.querySelector('img');
+            const editedPlaceholder = document.getElementById('edited-placeholder');
+            if (state) {
+                if(editedPlaceholder) editedPlaceholder.classList.add('hidden');
+                if (editedImg) editedImg.style.opacity = '0.3';
+                applyBtnText.textContent = "Processando...";
+            } else {
+                if (editedImg) editedImg.style.opacity = '1';
+                else if(editedPlaceholder) editedPlaceholder.classList.remove('hidden');
+                applyBtnText.textContent = "Aplicar Edição";
+            }
+        }
+
+        function displayImage(container, dataUrl) {
+            container.innerHTML = '';
+            const img = new Image();
+            img.src = dataUrl;
+            img.className = 'w-full h-full object-contain rounded-lg';
+            container.appendChild(img);
+        }
+        
+        function updateHistoryUI() {
+            historyList.innerHTML = '';
+            if (!originalImage.dataUrl) {
+                 historyList.innerHTML = '<li class="text-gray-500 text-sm">Nenhuma edição ainda.</li>';
+                 return;
+            }
+
+            const originalItem = document.createElement('li');
+            originalItem.className = 'flex items-center p-2 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors';
+            originalItem.innerHTML = `<img src="${originalImage.dataUrl}" class="history-thumbnail w-10 h-10 object-cover rounded-md mr-3" alt="Imagem Original"><span class="text-sm font-semibold">Original</span>`;
+            originalItem.onclick = () => {
+                const processedBase64 = currentImage.dataUrl.split(',')[1];
+                currentImage = { ...currentImage, base64: processedBase64 };
+                displayImage(editedImageContainer, currentImage.dataUrl);
+                promptInput.value = '';
+            };
+            historyList.appendChild(originalItem);
+
+            historyStack.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center p-2 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors';
+                li.innerHTML = `<img src="${item.dataUrl}" class="history-thumbnail w-10 h-10 object-cover rounded-md mr-3" alt="Edição ${index + 1}"><span class="text-sm truncate flex-1 pr-4">Edição ${index + 1}: ${item.prompt}</span>`;
+                li.onclick = () => {
+                    currentImage = { ...item };
+                    displayImage(editedImageContainer, currentImage.dataUrl);
+                };
+                historyList.appendChild(li);
+            });
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            setTimeout(() => errorMessage.textContent = '', 6000);
+        }
+        
+        // --- Funções de Lógica Principal ---
+        function copyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const originalTitle = copySuggestionBtn.title;
+                copySuggestionBtn.innerHTML = `<svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                copySuggestionBtn.title = 'Copiado!';
+                setTimeout(() => {
+                     copySuggestionBtn.title = originalTitle;
+                     copySuggestionBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+                }, 2000);
+            } catch (err) { console.error('Falha ao copiar texto: ', err); }
+            document.body.removeChild(textArea);
+        }
+        
+        async function compressImageIfNeeded(dataUrl) {
+            const base64Data = dataUrl.split(',')[1];
+            if (base64Data.length * 0.75 < MAX_API_SIZE_BYTES) {
+                return { dataUrl, compressed: false };
+            }
+
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 1400; const MAX_HEIGHT = 1400;
+                    let { width, height } = img;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    resolve({ dataUrl: compressedDataUrl, compressed: true });
+                };
+                img.onerror = reject;
+                img.src = dataUrl;
+            });
+        }
+
+        function handleFileUpload(file) {
+             if (!file || !file.type.startsWith('image/')) { showError("Por favor, selecione um arquivo de imagem válido."); return; }
+             if(file.size > MAX_UPLOAD_SIZE_MB * 1024 * 1024) { showError(`O arquivo é muito grande. O limite é ${MAX_UPLOAD_SIZE_MB}MB.`); return; }
+            
+            resetApp();
+
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                try {
+                    const originalDataUrl = reader.result;
+                    displayImage(originalImageContainer, originalDataUrl);
+                    fileNameDisplay.textContent = file.name;
+
+                    const { dataUrl: processedDataUrl, compressed } = await compressImageIfNeeded(originalDataUrl);
+                    
+                    if (compressed) {
+                        fileNameDisplay.textContent = `${file.name} (otimizado para edição)`;
+                    }
+
+                    const base64Data = processedDataUrl.split(',')[1];
+                    const mimeType = processedDataUrl.startsWith('data:image/jpeg') ? 'image/jpeg' : file.type;
+                    
+                    originalImage = { dataUrl: originalDataUrl, mimeType: file.type };
+                    currentImage = { base64: base64Data, mimeType: mimeType, dataUrl: processedDataUrl };
+                    historyStack = [];
+                    
+                    displayImage(editedImageContainer, currentImage.dataUrl);
+                    updateHistoryUI();
+                    activateControls();
+                    showError('');
+                    
+                    analyzeImageAndSuggestEdit(currentImage);
+                } catch (error) {
+                    console.error("Erro durante o processamento do arquivo:", error);
+                    showError("Não foi possível processar a imagem.");
+                    resetApp();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // NOVO: Função para interpretar o erro da API de forma mais clara
+        function parseApiError(error) {
+            const message = error.message.toLowerCase();
+            if (message.includes('safety')) {
+                return "A edição foi bloqueada pelo filtro de segurança. Tente um prompt ou imagem diferente.";
+            }
+            if (message.includes('api key')) {
+                return "Erro de autenticação. A chave da API pode ser inválida ou estar faltando.";
+            }
+            if (message.includes('400')) {
+                 return "Pedido inválido. A IA não conseguiu entender a solicitação. Tente ser mais claro.";
+            }
+            if (message.includes('503') || message.includes('unavailable')) {
+                return "O serviço da IA está sobrecarregado. Por favor, tente novamente em alguns momentos.";
+            }
+            if (message.includes('failed to fetch')) {
+                return "Erro de rede. Verifique sua conexão com a internet.";
+            }
+            return error.message || "Ocorreu um erro desconhecido. Tente novamente.";
+        }
+
+        async function applyEdit() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) { showError("Por favor, descreva a edição desejada."); return; }
+            if (!currentImage.base64) { showError("Carregue uma imagem primeiro."); return; }
+
+            setLoading(true);
+            showError('');
+
+            try {
+                const newBase64 = await callImageEditingAPI(prompt, currentImage.base64, currentImage.mimeType, 0);
+                
+                const newEditedState = {
+                    base64: newBase64,
+                    mimeType: currentImage.mimeType,
+                    dataUrl: `data:${currentImage.mimeType};base64,${newBase64}`,
+                    prompt: prompt
+                };
+
+                historyStack.push(newEditedState);
+                currentImage = { ...newEditedState };
+                
+                displayImage(editedImageContainer, currentImage.dataUrl);
+                updateHistoryUI();
+                promptInput.value = '';
+            } catch (error) {
+                console.error("Erro na API de edição:", error);
+                // ATUALIZADO: Usa a nova função para exibir o erro
+                showError(parseApiError(error));
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        async function analyzeImageAndSuggestEdit(image) {
+            aiSuggestionBox.classList.remove('hidden');
+            aiSuggestionLoader.classList.remove('hidden');
+            aiSuggestionContent.classList.add('hidden');
+            aiSuggestionError.classList.add('hidden');
+
+            try {
+                const suggestion = await callImageAnalysisAPI(image.base64, image.mimeType);
+                aiSuggestionText.textContent = suggestion;
+                aiSuggestionContent.classList.remove('hidden');
+            } catch (error) {
+                console.error("Erro na API de análise:", error);
+                aiSuggestionError.textContent = "Não foi possível gerar uma sugestão.";
+                aiSuggestionError.classList.remove('hidden');
+            } finally {
+                aiSuggestionLoader.classList.add('hidden');
+            }
+        }
+
+        // --- Funções de API ---
+        async function callImageAnalysisAPI(base64Data, mimeType) {
+            const systemPrompt = "You are an expert photo editor AI assistant. Analyze the user's image and provide a single, creative, and actionable suggestion for editing it. The suggestion should be a concise prompt that could be fed into an image generation model. Focus on improvements like lighting, style, or subject modification. Be creative but relevant to the image content. Output only the suggested prompt text, nothing else.";
+            const userQuery = "Analyze this image and give me one creative editing suggestion.";
+            const payload = { contents: [{ parts: [ { text: userQuery }, { inlineData: { mimeType: mimeType, data: base64Data } } ] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+            const response = await fetch(ANALYSIS_API_URL + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) { throw new Error(`Erro de rede: ${response.status}`); }
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) { throw new Error("A análise não retornou texto."); }
+            return text.trim();
+        }
+
+        async function callImageEditingAPI(prompt, base64Data, mimeType, attempt) {
+             const MAX_RETRIES = 5;
+             if (attempt >= MAX_RETRIES) throw new Error("Não foi possível conectar à API após várias tentativas.");
+        
+            const payload = { contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: mimeType, data: base64Data } } ] }], generationConfig: { responseModalities: ['IMAGE'] }, };
+            try {
+                const response = await fetch(API_URL + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    if (response.status === 400 && errorData?.error?.message.includes('too large')) {
+                        throw new Error("A imagem otimizada ainda é muito grande para a API. Tente uma imagem menor.");
+                    }
+                    throw new Error(errorData?.error?.message || `Erro de rede: ${response.status}`);
+                }
+                const result = await response.json();
+                const newBase64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (!newBase64Data) { throw new Error("A API não retornou uma imagem. Tente um prompt mais específico."); }
+                return newBase64Data;
+            } catch(error) {
+                 if (attempt < MAX_RETRIES && (error.message.includes("429") || error.message.includes("503"))) {
+                    await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
+                    return callImageEditingAPI(prompt, base64Data, mimeType, attempt + 1);
+                }
+                throw error;
+            }
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('load', resetApp);
+        dropZone.addEventListener('click', () => imageUploadInput.click());
+        imageUploadInput.addEventListener('change', (e) => handleFileUpload(e.target.files[0]));
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }));
+        ['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('drag-over')));
+        ['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('drag-over')));
+        dropZone.addEventListener('drop', e => { handleFileUpload(e.dataTransfer.files[0]); });
+        applyEditBtn.addEventListener('click', applyEdit);
+        resetBtn.addEventListener('click', resetApp);
+        useSuggestionBtn.addEventListener('click', () => { promptInput.value = aiSuggestionText.textContent; promptInput.focus(); });
+        copySuggestionBtn.addEventListener('click', () => { copyTextToClipboard(aiSuggestionText.textContent); });
+
+        document.querySelectorAll('.quick-style-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const style = `estilo ${button.textContent.toLowerCase()}`;
+                promptInput.value = promptInput.value ? `${promptInput.value}, ${style}` : style.charAt(0).toUpperCase() + style.slice(1);
+                promptInput.focus();
+            });
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!currentImage.dataUrl) { showError("Não há imagem editada para baixar."); return; }
+            const link = document.createElement('a');
+            link.href = currentImage.dataUrl;
+            link.download = `editado_ia_${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    </script>
+</body>
+</html>
+
